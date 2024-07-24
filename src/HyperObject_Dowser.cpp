@@ -27,6 +27,11 @@
 
 #define INTERVAL 3000
 
+TinyGPSPlus gps;
+
+float Flat, Flon, Alt, timeGps;
+long timeSinceLastEpochUpdate = 0;
+
 // put function declarations here:
 int myFunction(int, int);
 

@@ -11,6 +11,7 @@
 */
 
 #include <Arduino.h>
+#include "HyperObject_Dowser.h"
 
 // Libraries
 #include <Sgp4.h>

@@ -1,10 +1,11 @@
 /* 
-  Hidden dependency project
+  Hyper object dowser project
   Copyright (c) 2024 Sangbong Lee <sangbong@me.com>
   
-  * Frequency generator for 3 speakers connected to a Teensy 4.0 board with 2 Audio-shield rev D
-  * This code allows the Teensy board 4.0 to generate certain frequencies for 3 speakers to draw laser patterns on the wall.
-  * It also has functions to interact between audiences and the device with a microphone module.
+  * Stepper motor controller that rotate brass rods depends on the signal magnitude from WiFi devices and satellites on the sky
+  * This code allows the esp32 board to scan the existence of WiFi routers, and the location of satellites that are tracked based on the current position of the device. 
+  * Then, it calculates the number of sources which emit signals and magnitudes of those signal from the sources.
+  * Finally, the device converts the number of sources and magnitude of signals to the rotation value of the stepper motor for the dowsing rod.
 
   This work is licensed under the Creative Commons Attribution 4.0 International License.
   To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/.
@@ -16,12 +17,64 @@
 //=========================================================//
 
 void setup() {
-  // put your setup code here, to run once:
+  // Software Serial Initialize
+  Serial2.begin(9600, SERIAL_8N1, 12, 13); //SoftSerial rx 12 <-> gps tx, SoftSerial tx 13 <-> gps rx
+
+  // Display Initialize
+  Display_setup();
+
+  // Stepper motor Initialize
+  Stepper_setup();
   
+  // WiFi Initialize
+  WiFi_setup();
+  
+  // GPS Initialize
+  GPS_setup();
+  
+  // Satellite tracking Initialize
+  Sat_track_init();
+
+  // Draw first page of data from modules
+  Display_draw_firstPage(gpsDataNoti.c_str(), gpsLocNoti.c_str(), wifiNoti.c_str(), satNoti.c_str());
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  Update_time();
+
+  GPS_update();
+
+  Sat_tracking();
+
+  //Display SATs infos => Sat names, Azimuth, Latitude, Longitude, distance,......
+  current_tr_act_sat_num = 0;
+  for (int i = 0; i < 6; i++) {
+    Sat_tick(*satellites[i]);
+  }
+
+  Sat_update();
+
+  WiFi_update();
+  
+  // Calculating rotation angle
+  rotateAngleWifi = Get_wifi_angle(numWifi, magWifi);
+  rotateAngleSat  = Get_sat_angle();
+  int rotationAngle = Get_rotation_angle(rotateAngleWifi, rotateAngleSat);
+
+  // Rotating stepper motors
+  Stepper_update(rotationAngle);
+  // end Rotating stepper motors
+
+  // Display data 
+  Display_update(String(gpsLocNoti).c_str(), String(timeSource).c_str(), String(epochTime).c_str(), 
+                    String(numWifi).c_str(), String(current_gps_sat_num).c_str(), 
+                    String(current_tr_act_sat_num).c_str(), String(rotationAngle).c_str()); 
+  
+  // Display rotation angle data 
+  Display_rotation_angle(String(rotateAngleSat).c_str(), String(rotateAngleWifi).c_str());
+
+
+  delay(INTERVAL); // Reduced interval??
 }
 
 //======================== Function definitions ======================//
@@ -258,15 +311,14 @@ void Display_setup() {
 }
 
 // Display initial data from modules //
-void Display_draw_firstPage(const char *gps_data, const char *gps_loc, const char *lora_init, const char *wifi_init, const char *sat_init) {
+void Display_draw_firstPage(const char *gps_data, const char *gps_loc, const char *wifi_init, const char *sat_init) {
   u8g2.firstPage();
   do {
     u8g2.drawStr(2,15, "SYS START...");    
     u8g2.drawStr(2,30, gps_data); 
     u8g2.drawStr(2,45, gps_loc);    
-    u8g2.drawStr(2,60, lora_init);
-    u8g2.drawStr(2,75, wifi_init);
-    u8g2.drawStr(2,90, sat_init);
+    u8g2.drawStr(2,60, wifi_init);
+    u8g2.drawStr(2,75, sat_init);
     
   } while (u8g2.nextPage());
   delay(2500);
@@ -282,7 +334,7 @@ void Display_draw(const char *s) {
 }
 
 void Display_update(const char *gps_available, const char *time_source, const char *epoch_time, const char *wifi_num, 
-                    const char *lora_packet, const char *g_sats_num, const char *t_sats_num, const char *rot_angle) {
+                    const char *g_sats_num, const char *t_sats_num, const char *rot_angle) {
   u8g2.clearDisplay();
   u8g2.firstPage();
   do {
@@ -298,11 +350,8 @@ void Display_update(const char *gps_available, const char *time_source, const ch
     u8g2.drawStr(2,75, "WiFi ");
     u8g2.drawStr(30,75, wifi_num);
     
-    u8g2.drawStr(2,90, "LoRa ");
-    u8g2.drawStr(30,90, lora_packet);
-    
-    u8g2.drawStr(2,105, "GS ");
-    u8g2.drawStr(18,105, g_sats_num);
+    u8g2.drawStr(2,90, "GS ");
+    u8g2.drawStr(18,90, g_sats_num);
 
     u8g2.drawStr(30,105, "TS ");
     u8g2.drawStr(48,105, t_sats_num);
@@ -314,7 +363,7 @@ void Display_update(const char *gps_available, const char *time_source, const ch
   delay(3000);
 }
 
-void Display_rotation_angle(const char *gps_Angle, const char *lora_Angle, const char *wifi_Angle) {
+void Display_rotation_angle(const char *gps_Angle, const char *wifi_Angle) {
   u8g2.clearDisplay();
   u8g2.firstPage();
   do {
@@ -322,12 +371,9 @@ void Display_rotation_angle(const char *gps_Angle, const char *lora_Angle, const
     
     u8g2.drawStr(2,30, "GPS ");
     u8g2.drawStr(30,30, gps_Angle); 
-
-    u8g2.drawStr(2,45, "Lora ");
-    u8g2.drawStr(30,45, lora_Angle);
     
-    u8g2.drawStr(2,60, "WIFI "); 
-    u8g2.drawStr(30,60, wifi_Angle);    
+    u8g2.drawStr(2,45, "WIFI "); 
+    u8g2.drawStr(30,45, wifi_Angle);    
     
   } while ( u8g2.nextPage() );
 }
@@ -381,14 +427,91 @@ void Stepper_update(int _dstAngle) {
 
 //============================ Get stepper angle functions ========================//
 int Get_wifi_angle(int _num, int _mag) {
+  int angle = 0;
+  angle = _num + abs(_mag / _mag);
+  angle = constrain(angle, 0, 15);
 
+  return angle;
 }
 int Get_sat_angle() {
+  float eleAngle;
+  float distAngle;
+  float visAngle;
+  
+  int angle = 0;
 
+  for (int i = 0; i < numberSat; i++) {
+    if(sat_vis[i] == -2) 
+    { 
+      //Under horizon 
+      visAngle += (sat_vis[i] * 10); // -20
+      eleAngle += 0;
+      distAngle += 0;
+    } 
+    else if(sat_vis[i] == -1)
+    {
+      //Day light
+      visAngle += (sat_vis[i] * 10); // -10
+      eleAngle += (180 + sat_ele[i] / 100 * numberSat);  // Positive number  180 + (-180 - 180)
+      distAngle += (35000 - sat_dist[i]  / 35000 * numberSat);
+    }
+    else
+    {
+      //Visible
+      visAngle += (sat_vis[i] / 100); // 0 - 1000
+      eleAngle += (180 + sat_ele[i] / 100 * numberSat);  // Positive number  180 + (-180 - 180)
+      distAngle += (35000 - sat_dist[i]  / 35000 * numberSat);
+    }
+  }
+  angle = eleAngle + distAngle + visAngle;
+  angle = constrain(angle, 0, 60);
+  
+  return angle;
 }
 int Get_rotation_angle(int _angleWifi, int _angleSat) {
+  int rotation;
+  rotation = _angleWifi + _angleSat;
 
+  return rotation;
 }
 float Get_angle_to_step(float _angle) {
+  float stepperStep;
+  stepperStep = round(_angle * ONE_REVOLUTION / 360);
   
+  return stepperStep;
+}
+
+//============================ Calculate time functions ========================//
+void Update_time() {
+timeSinceLastEpochUpdate = millis();
+  if (gps.time.isValid())
+  {
+    epochTime = Cal_unix_time();
+    
+    if (epochTime < MYUNIXTIME) {
+      epochTime = MYUNIXTIME + timeSinceLastEpochUpdate;
+      timeSource = "INTERNAL";
+    } else {
+      timeSource = "GPS";
+    }
+    
+  } else {
+    epochTime = MYUNIXTIME + timeSinceLastEpochUpdate;
+    timeSource = "INTERNAL";
+  }
+}
+
+int Cal_unix_time() {
+  time_t t_of_day;
+  struct tm t;
+  
+  t.tm_year = gps.date.year() - 1900;
+  t.tm_mon = gps.date.month() - 1;           // Month, 0 - jan
+  t.tm_mday = gps.date.day();                 // Day of the month
+  t.tm_hour = gps.time.hour();
+  t.tm_min =  gps.time.minute();
+  t.tm_sec = gps.time.second();
+  t_of_day = mktime(&t);
+
+  return t_of_day;
 }

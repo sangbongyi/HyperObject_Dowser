@@ -157,17 +157,17 @@ void Sat_tracking();
 
 // Display functions
 void Display_setup();
-void Display_draw_firstPage(const char *gps_data, const char *gps_loc, const char *lora_init, 
+void Display_draw_firstPage(const char *gps_data, const char *gps_loc, 
                             const char *wifi_init, const char *sat_init);
 void Display_draw(const char *s);
 void Display_update(const char *gps_available, const char *time_source, const char *epoch_time, 
-                    const char *wifi_num, const char *lora_packet, const char *g_sats_num, 
-                    const char *t_sats_num, const char *rot_angle);
-void Display_rotation_angle(const char *gps_Angle, const char *lora_Angle, const char *wifi_Angle);
+                    const char *wifi_num, const char *g_sats_num, const char *t_sats_num, 
+                    const char *rot_angle);
+void Display_rotation_angle(const char *gps_Angle, const char *wifi_Angle);
 
 // Stepper functions
 void Stepper_setup();
-void Stepper_update();
+void Stepper_update(int _dstAngle);
 
 // Get stepper angle functions
 int Get_wifi_angle(int _num, int _mag);

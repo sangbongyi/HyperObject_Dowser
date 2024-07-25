@@ -239,6 +239,156 @@ void Sat_track_init() {
   }
 }
 
+// Satellite tracking
 void Sat_tracking() {
-  //findsat
+  // findsat
+  for(int i = 0; i < 6; i++) {
+    satellites[i]->findsat(epochTime);
+  }
+}
+
+//============================ Display functions ========================//
+// Setup display //
+void Display_setup() {
+  u8g2.begin();
+  u8g2.setFont(u8g2_font_6x10_tr);
+  u8g2.clearDisplay();
+  u8g2.setDisplayRotation(U8G2_R1);
+  u8g2.setFlipMode(0);
+}
+
+// Display initial data from modules //
+void Display_draw_firstPage(const char *gps_data, const char *gps_loc, const char *lora_init, const char *wifi_init, const char *sat_init) {
+  u8g2.firstPage();
+  do {
+    u8g2.drawStr(2,15, "SYS START...");    
+    u8g2.drawStr(2,30, gps_data); 
+    u8g2.drawStr(2,45, gps_loc);    
+    u8g2.drawStr(2,60, lora_init);
+    u8g2.drawStr(2,75, wifi_init);
+    u8g2.drawStr(2,90, sat_init);
+    
+  } while (u8g2.nextPage());
+  delay(2500);
+}
+
+void Display_draw(const char *s) {
+  u8g2.firstPage();
+  do {  
+    u8g2.drawStr(2,15,s); 
+
+  } while (u8g2.nextPage());
+  delay(500);
+}
+
+void Display_update(const char *gps_available, const char *time_source, const char *epoch_time, const char *wifi_num, 
+                    const char *lora_packet, const char *g_sats_num, const char *t_sats_num, const char *rot_angle) {
+  u8g2.clearDisplay();
+  u8g2.firstPage();
+  do {
+    u8g2.drawStr(2,15, "Update...");    
+    u8g2.drawStr(2,30, "G_LOC ");
+    u8g2.drawStr(40,30, gps_available); 
+
+    u8g2.drawStr(2,45, "TIME ");
+    u8g2.drawStr(30,45, time_source);
+    
+    u8g2.drawStr(2,60, epoch_time);    
+    
+    u8g2.drawStr(2,75, "WiFi ");
+    u8g2.drawStr(30,75, wifi_num);
+    
+    u8g2.drawStr(2,90, "LoRa ");
+    u8g2.drawStr(30,90, lora_packet);
+    
+    u8g2.drawStr(2,105, "GS ");
+    u8g2.drawStr(18,105, g_sats_num);
+
+    u8g2.drawStr(30,105, "TS ");
+    u8g2.drawStr(48,105, t_sats_num);
+    
+    u8g2.drawStr(2,115, "ANGLE ");
+    u8g2.drawStr(35,115, rot_angle);
+    
+  } while ( u8g2.nextPage() );
+  delay(3000);
+}
+
+void Display_rotation_angle(const char *gps_Angle, const char *lora_Angle, const char *wifi_Angle) {
+  u8g2.clearDisplay();
+  u8g2.firstPage();
+  do {
+    u8g2.drawStr(2,15, "Rotate...");    
+    
+    u8g2.drawStr(2,30, "GPS ");
+    u8g2.drawStr(30,30, gps_Angle); 
+
+    u8g2.drawStr(2,45, "Lora ");
+    u8g2.drawStr(30,45, lora_Angle);
+    
+    u8g2.drawStr(2,60, "WIFI "); 
+    u8g2.drawStr(30,60, wifi_Angle);    
+    
+  } while ( u8g2.nextPage() );
+}
+
+//============================ Stepper functions ========================//
+// Setup stepper movements //
+void Stepper_setup() {
+  stepper1.setMaxSpeed(500.0);
+  stepper1.setCurrentPosition(0);
+  stepper1.setAcceleration(150.0);
+  stepper1.setSpeed(30);
+  
+  stepper2.setMaxSpeed(500.0);
+  stepper2.setCurrentPosition(0);
+  stepper2.setAcceleration(150.0);
+  stepper2.setSpeed(30);
+}
+
+// Update stepper movements //
+void Stepper_update(int _dstAngle) {
+  stepper1.moveTo(Get_angle_to_step(_dstAngle));
+  stepper2.moveTo(Get_angle_to_step(_dstAngle));
+
+  while(stepper1.distanceToGo() > 0){
+    stepper1.run();
+    stepper2.run();
+  }
+  //Serial.println("Rotate reverse " + String(_dstAngle) + " to " + String(0));
+  stepper1.moveTo(Get_angle_to_step(_dstAngle*-1));
+  stepper2.moveTo(Get_angle_to_step(_dstAngle*-1));
+
+  while(stepper1.distanceToGo() < 0) {
+    stepper1.run();
+    stepper2.run();
+  }
+
+  stepper1.moveTo(0);
+  stepper2.moveTo(0);
+
+  while(stepper1.distanceToGo() > 0) {
+    stepper1.run();
+    stepper2.run();
+  }
+  
+  //Elapsed time check?
+  
+  //Serial.println("Rotation complete..!!");
+  previousAngle = _dstAngle; 
+  //Serial.println();
+}
+
+//============================ Get stepper angle functions ========================//
+int Get_wifi_angle(int _num, int _mag) {
+
+}
+int Get_sat_angle() {
+
+}
+int Get_rotation_angle(int _angleWifi, int _angleSat) {
+
+}
+float Get_angle_to_step(float _angle) {
+  
 }

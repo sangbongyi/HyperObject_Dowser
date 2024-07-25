@@ -63,9 +63,11 @@ const char* ntpServer = "pool.ntp.org";
 int numWifi = 1;
 int magWifi = 0;
 
+//================Stepper angle variables================//
 int rotateAngleWifi = 0;
 int rotateAngleSat = 0;
 int rotateAngleLora = 0;
+int previousAngle = 0;
 
 // Satellite
 Sgp4 sat_1; // ISS         (Space station)
@@ -105,8 +107,8 @@ Sat_TrackInfo satInfo_6;
 Sat_TrackInfo *satInfos[6] = {
   &satInfo_1, &satInfo_2, &satInfo_3, &satInfo_4, &satInfo_5, &satInfo_6
 };
-//================Satellite configuratoin================//
 
+//================Satellite configuratoin================//
 int current_gps_sat_num = 0; //gps sat number
 int current_tr_act_sat_num = 0; //tracking sat (active)
 
@@ -153,34 +155,25 @@ void Sat_tick(Sgp4 &_sat);
 void Sat_track_init();
 void Sat_tracking();
 
+// Display functions
+void Display_setup();
+void Display_draw_firstPage(const char *gps_data, const char *gps_loc, const char *lora_init, 
+                            const char *wifi_init, const char *sat_init);
+void Display_draw(const char *s);
+void Display_update(const char *gps_available, const char *time_source, const char *epoch_time, 
+                    const char *wifi_num, const char *lora_packet, const char *g_sats_num, 
+                    const char *t_sats_num, const char *rot_angle);
+void Display_rotation_angle(const char *gps_Angle, const char *lora_Angle, const char *wifi_Angle);
+
 // Stepper functions
 void Stepper_setup();
 void Stepper_update();
 
-// Display functions
-void Display_setup(const char *gps_data, 
-                   const char *gps_loc, 
-                   const char *lora_init, 
-                   const char *wifi_init, 
-                  const char *sat_init);
-void Display_draw(const char *s);
-void Display_update(const char *gps_available, 
-                    const char *time_source, 
-                    const char *epoch_time, 
-                    const char *wifi_num, 
-                    const char *lora_packet, 
-                    const char *g_sats_num, 
-                    const char *t_sats_num, 
-                    const char *rot_angle);
-void Display_rotation(const char *gps_Angle, 
-                      const char *lora_Angle, 
-                      const char *wifi_Angle);
-void Display_init();
-
 // Get stepper angle functions
-void Get_wifi_angle();
-void Get_sat_angle();
-void Get_rotation_angle();
+int Get_wifi_angle(int _num, int _mag);
+int Get_sat_angle();
+int Get_rotation_angle(int _angleWifi, int _angleSat);
+float Get_angle_to_step(float _angle);
 
 // Get Time
 void Update_time();

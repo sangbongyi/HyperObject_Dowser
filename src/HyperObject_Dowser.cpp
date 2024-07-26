@@ -3,7 +3,7 @@
   Copyright (c) 2024 Sangbong Lee <sangbong@me.com>
   
   * Stepper motor controller that rotate brass rods depends on the signal magnitude from WiFi devices and satellites on the sky
-  * This code allows the esp32 board to scan the existence of WiFi routers, and the location of satellites that are tracked based on the current position of the device. 
+  * This code allows the esp32 board to scan the existence of WiFi routers, and the location of satellites that are tracked based on the current GPS position of the device. 
   * Then, it calculates the number of sources which emit signals and magnitudes of those signal from the sources.
   * Finally, the device converts the number of sources and magnitude of signals to the rotation value of the stepper motor for the dowsing rod.
 
@@ -61,10 +61,6 @@ void loop() {
   rotateAngleSat  = Get_sat_angle();
   int rotationAngle = Get_rotation_angle(rotateAngleWifi, rotateAngleSat);
 
-  // Rotating stepper motors
-  Stepper_update(rotationAngle);
-  // end Rotating stepper motors
-
   // Display data 
   Display_update(String(gpsLocNoti).c_str(), String(timeSource).c_str(), String(epochTime).c_str(), 
                     String(numWifi).c_str(), String(current_gps_sat_num).c_str(), 
@@ -73,6 +69,9 @@ void loop() {
   // Display rotation angle data 
   Display_rotation_angle(String(rotateAngleSat).c_str(), String(rotateAngleWifi).c_str());
 
+  // Rotating stepper motors
+  Stepper_update(rotationAngle);
+  // end Rotating stepper motors
 
   delay(INTERVAL); // Reduced interval??
 }
@@ -353,8 +352,8 @@ void Display_update(const char *gps_available, const char *time_source, const ch
     u8g2.drawStr(2,90, "GS ");
     u8g2.drawStr(18,90, g_sats_num);
 
-    u8g2.drawStr(30,105, "TS ");
-    u8g2.drawStr(48,105, t_sats_num);
+    u8g2.drawStr(2,105, "TS ");
+    u8g2.drawStr(18,105, t_sats_num);
     
     u8g2.drawStr(2,115, "ANGLE ");
     u8g2.drawStr(35,115, rot_angle);

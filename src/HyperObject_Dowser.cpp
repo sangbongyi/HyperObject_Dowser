@@ -1,3 +1,16 @@
+/* 
+  Hyper object dowser project
+  Copyright (c) 2024 Sangbong Lee <sangbong@me.com>
+  
+  * Stepper motor controller that rotate brass rods depends on the signal magnitude from WiFi devices and satellites on the sky
+  * This code allows the esp32 board to scan the existence of WiFi routers, and the location of satellites that are tracked based on the current GPS position of the device. 
+  * Then, it calculates the number of sources which emit signals and magnitudes of those signal from the sources.
+  * Finally, the device converts the number of sources and magnitude of signals to the rotation value of the stepper motor for the dowsing rod.
+
+  This work is licensed under the Creative Commons Attribution 4.0 International License.
+  To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/.
+*/
+
 #include <Arduino.h>
 #include "HyperObject_Dowser.h"
 

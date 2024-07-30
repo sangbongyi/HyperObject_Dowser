@@ -1,4 +1,4 @@
-# Hidden dependency (Teensy4.0 Board)
+# Hyper-object Dowser
 
 **_Stepper motor controller that rotate brass rods depends on the signal magnitude from WiFi devices and satellites on the sky. This code allows the esp32 board to scan the existence of WiFi routers, and the location of satellites that are tracked based on the current GPS position of the device. Then, it calculates the number of sources which emit signals and magnitudes of those signal from the sources. Lastly, the device converts the number of sources and magnitude of signals to the rotation value of the stepper motor for the dowsing rod._**
 
@@ -11,7 +11,7 @@ People always try to find a way to identify an invisible thing that surrounds us
 ![Hyper-object Dowser image 1](/assets/images/image_1.png)
 
 ## Interaction diagram
-This apparatus considers data collection activity from the stacks of networks as a creepy gaze from the hyperobject in the form of electromagnetic pulses and represents its magnitude as a rotation of two brass rod. The more the device detects the density of artificial signals from devices, the stronger the gaze it represents. Thus, the device make the brass rod rotate further as if alike dowsing rod in the past.
+This apparatus considers data collection activity from the stacks of networks as a creepy gaze from the hyperobject in the form of electromagnetic pulses and represents its magnitude as a rotation of two brass rod. The more the device detects the density of artificial signals nearby, the stronger the gaze it represents. Thus, the device make the brass rod rotate further based on the magnitude of the signal.
 ![Hyper-object Dowser image 2](/assets/images/diagram.png)
 
 ## Gallery

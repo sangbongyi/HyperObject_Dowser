@@ -1,4 +1,4 @@
-# Hyper-object Dowser
+# Hyperobject Dowser
 
 **_Stepper motor controller that rotate brass rods depends on the signal magnitude from WiFi devices and satellites on the sky. This code allows the esp32 board to scan the existence of WiFi routers, and the location of satellites that are tracked based on the current GPS position of the device. Then, it calculates the number of sources which emit signals and magnitudes of those signal from the sources. Lastly, the device converts the number of sources and magnitude of signals to the rotation value of the stepper motor for the dowsing rod._**
 
